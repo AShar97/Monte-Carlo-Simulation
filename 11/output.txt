@@ -1,0 +1,17 @@
+
+
+Taking mu 0.05 and sigma 0.25 , and sample size 1000 ::
+Sample expectation and variance of S(5) are estimated to be 1.280236 , and 0.5402041 , respectively.
+While, theoretical expectation and variance of S(5) are 1.284025 , and 0.6048135 , respectively.
+
+Taking mu 0.05 and sigma 0.3 , and sample size 1000 ::
+Sample expectation and variance of S(5) are estimated to be 1.32613 , and 1.094235 , respectively.
+While, theoretical expectation and variance of S(5) are 1.284025 , and 0.9369884 , respectively.
+
+Taking mu -0.05 and sigma 0.25 , and sample size 1000 ::
+Sample expectation and variance of S(5) are estimated to be 0.7602637 , and 0.2082394 , respectively.
+While, theoretical expectation and variance of S(5) are 0.7788008 , and 0.2224985 , respectively.
+
+Taking mu -0.05 and sigma 0.3 , and sample size 1000 ::
+Sample expectation and variance of S(5) are estimated to be 0.7724962 , and 0.3620434 , respectively.
+While, theoretical expectation and variance of S(5) are 0.7788008 , and 0.3446988 , respectively.

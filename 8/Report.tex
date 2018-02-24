@@ -1,0 +1,166 @@
+\documentclass[11pt]{article}
+\usepackage{natbib,mybigpackage}
+\usepackage{algorithm}
+%\usepackage{program}
+%\usepackage{algpseudocode}
+\usepackage{algorithmic}
+\usepackage{listings}
+
+
+\def\xbf{\mathbf{x}}
+\def\zbf{\mathbf{z}}
+\def\xibf{\mathbf{\xi}}
+\title{MA 226 - Assignment Report 8}
+\author{Ayush Sharma\\150123046}
+\begin{document}
+\titlepage
+\newpage
+\begin{enumerate}
+\item[Q 1.] Use the following Monte Carlo estimator to approximate the expected value $$I = E(exp(\sqrt{U}))$$ where $U \sim \mathcal{U}(0,1)$: $I_M = \frac{1}{M}\sum_{i=1}^{M}Y_{i}$, where $Y_i = exp(\sqrt{U_i})$ with $U_i \sim \mathcal{U}(0,1)$.\\
+Take all values of M to be $10^2$, $10^3$, $10^4$ and $10^5$. Determine the 95\% confidence interval for $I_M$ for all the four values of M that you have taken.
+
+\item[Q 2.] Repeat the above exercise using antithetic variates via the following estimator and calculate the percentage of variance reduction:
+$$\hat{I}_{M} = \frac{1}{M}\sum_{i=1}^{M}\hat{Y}_{i}$$ where $$\hat{Y}_{i} = \frac{exp(\sqrt{U_i}) + exp(\sqrt{1 - U_i})}{2}$$ with $U_i \sim \mathcal{U}(0,1)$.
+
+\item[Q 3.] Use $\sqrt{U}$ to construct control variate estimate and repeat the above exercise. Calculate the percentage of variance reduction.
+\end{enumerate}
+\newpage
+\noindent{\textbf{Solution}:}\\
+Approximating $z_{\frac{\alpha}{2}}$ for 95\% confidence interval :\\
+$100(1-\alpha) = 95 \Rightarrow \alpha = 1 - \frac{95}{100} = 0.05\\
+\Rightarrow P(X \geq z_{\frac{\alpha}{2}}) = \frac{\alpha}{2}$, where $ X \sim \mathcal{N}(0,1)\\
+\Rightarrow P(X \leq z_{\frac{\alpha}{2}}) = 1 - \frac{\alpha}{2}\\
+\Rightarrow z_{\frac{\alpha}{2}} = quantile_{normal}((1 - \frac{\alpha}{2}), \mu = 0, \sigma = 1)$.\\
+
+The approximate 95\% confidence interval is given by
+$$(I_M - z_{\frac{\alpha}{2}}\frac{S_M}{\sqrt{M}} , I_M + z_{\frac{\alpha}{2}}\frac{S_M}{\sqrt{M}})$$
+where $S_{M}^{2}$ is usual estimate of the variance of $Y$ based on the simulated values $Y_1, \cdots , Y_M$.\\
+
+Using $\sqrt{U}$ to construct control variate estimate :\\
+$X_i = exp(\sqrt{U_i})$ and $Y_i = \sqrt{U_i}$ with $U_i \sim \mathcal{U}(0,1)$.\\
+Then, $$W = X + \hat{c}(Y - \mu_Y)$$
+is a variance reduced unbiased estimator of $I = E(exp(\sqrt{U}))$ where $\hat{c} = -\frac{Cov(X,Y)}{Var(Y)}$.
+\newpage
+\noindent{Code for R}
+\begin{lstlisting}
+##Question-1:
+f1 <- function(m) {
+	set.seed(1);
+	U <- runif(m,0,1);
+	Y <- exp(sqrt(U));
+	return (c(mean(Y),sqrt(var(Y))));
+}
+
+I1 <- vector(length = 4);
+S1 <- vector(length = 4);
+Radius1 <- vector(length = 4);
+
+##Same for all questions.
+percentage = 95;
+alpha = 1 - percentage/100;
+p = (1 - (alpha/2));
+z = qnorm(p, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE);
+
+for (i in 2:5) {
+	Out <- f1(10^i);
+	I1[i-1] = Out[1];	S1[i-1] = Out[2];
+	Radius1[i-1] = (z * (S1[i-1] / sqrt(10^i)));
+}
+
+cat("Using Standard Monte Carlo simulation algorithm ::\n");
+
+for (i in 2:5) {
+	cat("The 95% confidence interval for", 10^i, "values is (", (I1[i-1] - Radius1[i-1]), ",", (I1[i-1] + Radius1[i-1]), ") .\n");
+}
+
+##Question-2:
+f2 <- function(m) {
+	set.seed(1);
+	U <- runif(m,0,1);
+	Y <- ((exp(sqrt(U)) + exp(sqrt(1 - U))) / 2);
+	return (c(mean(Y),sqrt(var(Y))));
+}
+
+I2 <- vector(length = 4);
+S2 <- vector(length = 4);
+Radius2 <- vector(length = 4);
+for (i in 2:5) {
+	Out <- f2(10^i);
+	I2[i-1] = Out[1];	S2[i-1] = Out[2];
+	Radius2[i-1] = (z * (S2[i-1] / sqrt(10^i)));
+}
+
+cat("\nUsing antithetic variates ::\n");
+
+for (i in 2:5) {
+	cat("The 95% confidence interval for", 10^i, "values is (", (I2[i-1] - Radius2[i-1]), ",", (I2[i-1] + Radius2[i-1]), ") .\n");
+}
+
+for (i in 2:5) {
+	cat("The percentage of variance rejection from standard method for", 10^i, "values is", (((S1[i-1]^2) - (S2[i-1]^2))/(S1[i-1]^2)) * 100, "% .\n");
+}
+
+##Question-3:
+f3 <- function(m) {
+	set.seed(1);
+	U <- runif(m,0,1);
+	Y <- sqrt(U);
+	X <- exp(Y);
+	c = -(cov(X,Y)/var(Y));
+	mu_y = mean(Y);
+	W <- (X + c * (Y - mu_y));
+	return (c(mean(W),sqrt(var(W))));
+}
+
+I3 <- vector(length = 4);
+S3 <- vector(length = 4);
+Radius3 <- vector(length = 4);
+for (i in 2:5) {
+	Out <- f3(10^i);
+	I3[i-1] = Out[1];	S3[i-1] = Out[2];
+	Radius3[i-1] = (z * (S3[i-1] / sqrt(10^i)));
+}
+
+cat("\nUsing control variates ::\n");
+
+for (i in 2:5) {
+	cat("The 95% confidence interval for", 10^i, "values is (", (I3[i-1] - Radius3[i-1]), ",", (I3[i-1] + Radius3[i-1]), ") .\n");
+}
+
+for (i in 2:5) {
+	cat("The percentage of variance rejection from standard method for", 10^i, "values is", (((S1[i-1]^2) - (S3[i-1]^2))/(S1[i-1]^2)) * 100, "% .\n");
+}
+\end{lstlisting}
+\newpage
+\noindent{\textbf{Results}:}\\
+Using Standard Monte Carlo simulation algorithm ::\\
+The 95\% confidence interval for 100 values is ( 1.953464 , 2.111522 ) .\\
+The 95\% confidence interval for 1000 values is ( 1.973193 , 2.027598 ) .\\
+The 95\% confidence interval for 10000 values is ( 1.990987 , 2.008426 ) .\\
+The 95\% confidence interval for 1e+05 values is ( 1.996456 , 2.001941 ) .\\
+
+Using antithetic variates ::\\
+The 95\% confidence interval for 100 values is ( 2.000865 , 2.011191 ) .\\
+The 95\% confidence interval for 1000 values is ( 1.998007 , 2.002072 ) .\\
+The 95\% confidence interval for 10000 values is ( 1.998749 , 2.000047 ) .\\
+The 95\% confidence interval for 1e+05 values is ( 1.999591 , 1.999999 ) .\\
+The percentage of variance rejection from standard method for 100 values is 99.57316 \% .\\
+The percentage of variance rejection from standard method for 1000 values is 99.44168 \% .\\
+The percentage of variance rejection from standard method for 10000 values is 99.44611 \% .\\
+The percentage of variance rejection from standard method for 1e+05 values is 99.44644 \% .\\
+
+Using control variates ::\\
+The 95\% confidence interval for 100 values is ( 2.023643 , 2.041343 ) .\\
+The 95\% confidence interval for 1000 values is ( 1.997195 , 2.003596 ) .\\
+The 95\% confidence interval for 10000 values is ( 1.99867 , 2.000744 ) .\\
+The 95\% confidence interval for 1e+05 values is ( 1.998875 , 1.999522 ) .\\
+The percentage of variance rejection from standard method for 100 values is 98.74582 \% .\\
+The percentage of variance rejection from standard method for 1000 values is 98.616 \% .\\
+The percentage of variance rejection from standard method for 10000 values is 98.5857 \% .\\
+The percentage of variance rejection from standard method for 1e+05 values is 98.60733 \% .\\
+
+The use of \textbf{antithetic variates is found to be better than control variates} because of the simple reason that the percentage of variance reduction is more in case of antithetic variates than control variate.
+\end{document}
+
+%#Made by Ayush Sharma#
+%#Signed as AShar#

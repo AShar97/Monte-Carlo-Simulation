@@ -1,0 +1,119 @@
+\documentclass[11pt]{article}
+\usepackage{natbib,mybigpackage}
+\usepackage{algorithm}
+%\usepackage{program}
+%\usepackage{algpseudocode}
+\usepackage{algorithmic}
+\usepackage{listings}
+
+\usepackage{multirow}
+%\def\xbf{\mathbf{x}}
+%\def\zbf{\mathbf{z}}
+%\def\xibf{\mathbf{\xi}}
+\title{MA 226 - Assignment Report 11}
+\author{Ayush Sharma\\150123046}
+\begin{document}
+\titlepage
+\newpage
+%\begin{itemize}
+%\item[Question.]
+A financial asset, the process $\{S(t)\}$ is a GBM with drift parameter $\mu$, volatility parameter $\sigma$, and initial value $S(0)$ if
+$$S(t) = S(0)exp([\mu - \frac{\sigma^{2}}{2}]t + \sigma W(t)),$$
+\hspace{10mm}where $\{W(t)\}$ a standard BM.\\
+As with the case of a BM, we have a simple recursive procedure to simulate a GBM at $0 = t_0 < t_1 < \cdots t_n$ as
+$$S(t_i + 1) = S(t_i) exp([\mu - \frac{\sigma^{2}}{2}](t_{i+1} - t_i) + \sigma \sqrt{t_{i+1} - t_i}Z_{i+1}),$$
+\hspace{10mm}where $Z_1, Z_2, \cdots , Z_n$ are independent $\mathcal{N}(0, 1)$ variates.\\
+In the interval [0, 5], taking both positive and negative values for $\mu$ and for at least two different values of $\sigma^2$, simulate and plot at least 10 sample paths of the GBM (taking sufficiently large number of sample points for each path).\\
+Also, by generating a large number of sample paths, compare the actual and simulated distributions of $S(5)$.
+Calculate expectation and variance of $S(5)$ and match it with the theoretical values.\\
+\newpage
+\noindent{\textbf{Code for R}}
+\begin{lstlisting}
+sink("output.txt");
+
+set.seed(1);
+
+size = 5000;
+n = 10;
+m = 1000;
+range_time  = 5;
+dt = range_time/size;
+sdt = sqrt(dt);
+
+mu <- c(0.05, -0.05);
+sigma <- c(0.25, 0.3);
+
+S0 = 1;
+
+for (p in 1:2) {
+	for (q in 1:2) {
+		S <- matrix(1, nrow = (size + 1), ncol = 10);
+
+		for (i in 1:n) {
+			for (j in 2:(size + 1)) {
+				S[j,i] = S[j - 1,i] * exp(((mu[p] - (sigma[q]^2)/2) * dt) + (sigma[q] * sdt * rnorm(1, mean = 0, sd = 1)));
+			}
+		}
+
+		pdf(paste("plot",p,q,".pdf"));
+		for (i in 1:n) {
+			plot(seq(0, 5, dt), S[,i], type = 'l', xlim = c(0,5), ylim = c(-1,5), col = i, verticals = FALSE, do.points = FALSE, main = "", xlab = "", ylab = "")
+			par(new = TRUE)
+		}
+		title(ylab = 'S', xlab = 'Time');
+#		legend('topright', legend = c(paste("mu =", mu[p]), paste("sigma =", sigma[q])), lty = 0, col = "white", bty = 'n');
+
+#		cat("\n\nTaking mu", mu[p], "and sigma", sigma[q],", and sample size", n, "::") ;
+#		cat("\nSample expectation and variance of S(5) are estimated to be", mean(S[(5/dt + 1),]), ", and", var(S[(5/dt + 1),]), ", respectively.");
+#		cat("\nWhile, theoretical expectation and variance of S(5) are", (S0 * exp(mu[p] * 5)), ", and", (S0 * exp(2 * mu[p] * 5) * (exp((sigma[q]^2) * 5) - 1)), ", respectively.");
+
+		s <- vector(length = m);
+		for (i in 1:m) {
+			s[i] = 1;
+			for (j in 2:(size + 1)) {
+				s[i] = s[i] * exp(((mu[p] - (sigma[q]^2)/2) * dt) + (sigma[q] * sdt * rnorm(1, mean = 0, sd = 1)));
+			}	
+		}
+		cat("\n\nTaking mu", mu[p], "and sigma", sigma[q],", and sample size", m, "::") ;
+		cat("\nSample expectation and variance of S(5) are estimated to be", mean(s), ", and", var(s), ", respectively.");
+		cat("\nWhile, theoretical expectation and variance of S(5) are", (S0 * exp(mu[p] * 5)), ", and", (S0 * exp(2 * mu[p] * 5) * (exp((sigma[q]^2) * 5) - 1)), ", respectively.");
+
+	}
+}
+
+sink();
+\end{lstlisting}
+\newpage
+\noindent{\textbf{Results}}\\
+The plots of the sample paths generated for the Geomeric Brownian Motion ::
+\begin{figure}[H]
+	\centering
+	\subfloat[$\mu = 0.05$ and $\sigma = 0.25$]{\includegraphics[width=0.55\textwidth]{"plot 1 1 ".pdf}}%\hspace{10mm}
+	\subfloat[$\mu = 0.05$ and $\sigma = 0.3$]{\includegraphics[width=0.55\textwidth]{"plot 1 2 ".pdf}}\\
+	\subfloat[$\mu = -0.05$ and $\sigma = 0.25$]{\includegraphics[width=0.55\textwidth]{"plot 2 1 ".pdf}}%\hspace{10mm}
+	\subfloat[$\mu = -0.05$ and $\sigma = 0.3$]{\includegraphics[width=0.55\textwidth]{"plot 2 2 ".pdf}}
+		\caption{Plots of sample paths generated for the Geomeric Brownian Motion}	
+\end{figure}
+\newpage
+Comparision of the theoretical and simulated distributions of $S(5)$, i.e. expectations and variances ::
+\begin{table}[H]
+\begin{center}
+	\begin{tabular}{||c | c || c c | c c ||}
+	\hline
+		\multirow{2}{*}{$\mu$} & \multirow{2}{*}{$\sigma$} & \multicolumn{2}{|c}{Expectation} & \multicolumn{2}{|c||}{Variance}\\
+		 & & Sample & Theoretical & Sample & Theoretical\\ 
+	\hline
+		\multirow{2}{*}{0.05} & 0.25 & 1.280236 & 1.284025 & 0.5402041 & 0.6048135\\
+		 & 0.3 & 1.32613 & 1.284025 & 1.094235 & 0.9369884\\
+		\multirow{2}{*}{-0.05} & 0.25 & 0.7602637 & 0.7788008 & 0.2082394 & 0.2224985\\
+		 & 0.3 & 0.7724962 & 0.7788008 & 0.3620434 & 0.3446988\\
+	\hline
+	\end{tabular}
+	\caption{Expectation and Variance of $S(5)$, taking 1000 samples.}
+\end{center}
+\end{table}
+
+\end{document}
+
+%#Made by Ayush Sharma#
+%#Signed as AShar#

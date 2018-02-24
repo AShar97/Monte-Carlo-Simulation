@@ -1,0 +1,68 @@
+\begin{itemize}
+	\item[a = -0.25]
+		\begin{itemize}
+			\item The sample means, variances, and covariance are :
+				\begin{itemize}
+					\item mean($X_1$) = 5.042667\item mean($X_2$) = 7.984635\item variance($X_1$) = 0.9423585\item variance($X_2$) = 4.137109\item correlation($X_1$, $X_2$) = -0.2542622
+				\end{itemize}
+			\item While, the actual means, variances, and covariance are :
+				\begin{itemize}
+					\item mean($X_1$) = 5\item mean($X_2$) = 8\item variance($X_1$) = 1\item variance($X_2$) = 4\item correlation($X_1$, $X_2$) = -0.25
+				\end{itemize}
+		\end{itemize}
+	\item[a = 0]
+		\begin{itemize}
+			\item The sample means, variances, and covariance are :
+				\begin{itemize}
+					\item mean($X_1$) = 5.010323\item mean($X_2$) = 8.075212\item variance($X_1$) = 0.9465603\item variance($X_2$) = 3.835417\item correlation($X_1$, $X_2$) = -0.0217607
+				\end{itemize}
+			\item While, the actual means, variances, and covariance are :
+				\begin{itemize}
+					\item mean($X_1$) = 5\item mean($X_2$) = 8\item variance($X_1$) = 1\item variance($X_2$) = 4\item correlation($X_1$, $X_2$) = 0
+				\end{itemize}
+		\end{itemize}
+	\item[a = 0.25]
+		\begin{itemize}
+			\item The sample means, variances, and covariance are :
+				\begin{itemize}
+					\item mean($X_1$) = 5.02068\item mean($X_2$) = 7.937095\item variance($X_1$) = 0.9758604\item variance($X_2$) = 4.158121\item correlation($X_1$, $X_2$) = 0.2661262
+				\end{itemize}
+			\item While, the actual means, variances, and covariance are :
+				\begin{itemize}
+					\item mean($X_1$) = 5\item mean($X_2$) = 8\item variance($X_1$) = 1\item variance($X_2$) = 4\item correlation($X_1$, $X_2$) = 0.25
+				\end{itemize}
+		\end{itemize}
+\end{itemize}
+
+
+\begin{center}
+	\begin{tabular}{||c | c c | c c | c c||}
+	\hline
+		a & \multicolumn{2}{|c|}{-0.25} & \multicolumn{2}{|c|}{0} & \multicolumn{2}{|c||}{0.25}\\
+	\hline
+		Values & Sample & Actual & Sample & Actual & Sample & Actual\\
+	\hline
+		mean($X_1$) & 5.042667 & 5 & 5.010323 & 5 & 5.02068 & 5\\
+		mean($X_2$) & 7.984635 & 8 & 8.075212 & 8 & 7.937095 & 8\\
+		variance($X_1$) & 0.9423585 & 1 & 0.9465603 & 1 & 0.9758604 & 1\\
+		variance($X_2$) & 4.137109 & 4 & 3.835417 & 4 & 4.158121 & 4\\
+		correlation($X_1$, $X_2$) & -0.2542622 & -0.25 & -0.0217607 & 0 & 0.2661262 & 0.25\\
+	\hline
+	\end{tabular}
+\end{center}
+
+\begin{center}
+	\begin{tabular}{||c | c c | c c | c c||}
+	\hline
+		a & \multicolumn{2}{|c|}{-0.25} & \multicolumn{2}{|c|}{0} & \multicolumn{2}{|c||}{0.25}\\
+	\hline
+		Values & Sample & Actual & Sample & Actual & Sample & Actual\\
+	\hline
+		mean($X_1$) & 5.042667 & 5 & 5.010323 & 5 & 5.02068 & 5\\
+		mean($X_2$) & 7.984635 & 8 & 8.075212 & 8 & 7.937095 & 8\\
+		variance($X_1$) & 0.9423585 & 1 & 0.9465603 & 1 & 0.9758604 & 1\\
+		variance($X_2$) & 4.137109 & 4 & 3.835417 & 4 & 4.158121 & 4\\
+		correlation($X_1$, $X_2$) & -0.2542622 & -0.25 & -0.0217607 & 0 & 0.2661262 & 0.25\\
+	\hline
+	\end{tabular}
+\end{center}

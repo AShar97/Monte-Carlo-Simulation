@@ -1,0 +1,232 @@
+\documentclass[11pt]{article}
+\usepackage{natbib,mybigpackage}
+\usepackage{algorithm}
+%\usepackage{program}
+%\usepackage{algpseudocode}
+\usepackage{algorithmic}
+\usepackage{listings}
+
+
+\def\xbf{\mathbf{x}}
+\def\zbf{\mathbf{z}}
+\def\xibf{\mathbf{\xi}}
+\title{MA 226 - Assignment Report 9}
+\author{Ayush Sharma\\150123046}
+\begin{document}
+\titlepage
+\newpage
+Consider the multivariate normal,
+\begin{align*}
+	X = \begin{pmatrix}X_{1}\\X_{2}\end{pmatrix} \sim \mathcal{N}(\mu, \Sigma),\nonumber\\
+	\text{where } \mu = \begin{pmatrix}5\\8\end{pmatrix} \text{ and } \Sigma = \begin{pmatrix}1 & 2a\\2a & 4\end{pmatrix}.\nonumber
+\end{align*}
+\begin{enumerate}
+\item[Q 1.] For the cases a = -0.25, 0, 0.25, generate 1000 values of $X$ and calculate sample means, sample variances and sample correlations. Make empirical contour plots based on above generated samples.
+
+\item[Q 2.] Also, plot the actual and empirical marginal cdfs of $X_1$ and $X_2$.
+
+\item[Q 3.] Let us recall generating a bivariate normal with the help of conditional distributions.
+Suppose that $X_1 \sim \mathcal{N}(\mu_1,\sigma_{1}^{2}), X_2 \sim \mathcal{N}(\mu_2,\sigma_{2}^{2})$ and the conditional distribution of $X_2$ given $X_1 = x$ is $\mathcal{N}(\mu_2 + \rho\frac{\sigma_2}{\sigma_1}(x - \mu_1),\sigma_{2}^{2}(1 - \rho^2))$ where $|\rho| < 1$ is the correlation coefficient between $X_1$ and $X_2$. The vector $(X_1, X_2)$ is said to have a bivariate normal distribution. Simulate the vector for a particular set of parameter values, using this idea of conditional distributions. Estimate the sample quantities (mean, etc.) and compare with actual values.
+\\Take same $\mu_1$, $\mu_2$, $\sigma_1$, $\sigma_2$ and $\rho$.
+\end{enumerate}
+\newpage
+\noindent{\textbf{Solution}:}\\
+Generating the multivariate normal,
+\begin{align*}
+	X = \begin{pmatrix}X_{1}\\X_{2}\end{pmatrix} \sim \mathcal{N}(\mu, \Sigma),\nonumber\\
+	\text{where } \mu = \begin{pmatrix}5\\8\end{pmatrix} \text{ and } \Sigma = \begin{pmatrix}1 & 2a\\2a & 4\end{pmatrix}.\nonumber
+\end{align*}
+Generation by Cholesky's decomposition :
+\begin{align*}
+	& A = \begin{pmatrix}\sigma_{1} & 0\\\rho\sigma_{2} & \sqrt{(1 - \rho^2)}\sigma_{2}\end{pmatrix}, \text{ where } AA^{T} = \Sigma.\nonumber\\
+	\Rightarrow & X = \mu + AZ\nonumber
+\end{align*}
+\begin{algorithm}[H]
+\caption{Generation by Cholesky's decomposition.}
+\begin{algorithmic}[1]
+\STATE Generate two independent $Z_1, Z_2 \sim \mathcal{N}(0,1)$.
+\STATE First generate $X_1 = \mu_1 + \sigma_{1}Z_1$.
+\STATE Then generate $X_2 = \mu_2 + \rho\sigma_{2}Z_1 + \sqrt{(1 - \rho^2)}\sigma_{2}Z_{2}$.
+\end{algorithmic}
+\end{algorithm}
+Generation from conditional distribution :\\
+In bivariate set-up,
+\begin{align*}
+	(X_2 | X_1 = x) \sim \mathcal{N}(\mu_2 + \rho\frac{\sigma_2}{\sigma_1}(x - \mu_1),\sigma_{2}^{2}(1 - \rho^2)), \text{ where } X_1 \sim \mathcal{N}(\mu_1,\sigma_{1}^{2}).\nonumber
+\end{align*}
+\begin{algorithm}[H]
+\caption{Generation from conditional distribution.}
+\begin{algorithmic}[1]
+\STATE Generate two independent $Z_1, Z_2 \sim \mathcal{N}(0,1)$.
+\STATE First generate $X_1 \sim \mathcal{N}(\mu_1,\sigma_{1}^{2})$,\\
+	i.e. set $X_1 = \mu_1 + \sigma_{1}Z_1$.
+\STATE Then generate $(X_2 | X_1 = x) \sim \mathcal{N}(\mu_2 + \rho\frac{\sigma_2}{\sigma_1}(x - \mu_1),\sigma_{2}^{2}(1 - \rho^2))$,\\
+	i.e. set $X_2 = \mu^{*} + \sigma^{*}Z_2$, where $\mu^{*} = \mu_2 + \rho\frac{\sigma_2}{\sigma_1}(x - \mu_1)$ and $\sigma^{*} = \sigma_{2}\sqrt{(1 - \rho^2)}$.
+\end{algorithmic}
+\end{algorithm}
+\newpage
+\noindent{Code for R}
+\begin{lstlisting}
+library(MASS)	#For kde2d and mvrnorm
+
+#Question-1:
+gen_cholesky <- function(mu, SIGMA, sample) {
+	U <- matrix(runif((2 * sample), 0, 1), nrow = sample, ncol = 2);
+#	u1 <- runif(sample, 0, 1);
+#	u2 <- runif(sample, 0, 1);
+	R <- -2 * log(U[,1]);
+	V <- 2 * pi * U[,2];
+#	R <- -2 * log(u1);
+#	V <- 2 * pi * u2;
+	Z <- matrix(c((sqrt(R) * cos(V)), (sqrt(R) * sin(V))), nrow = sample, ncol = 2);
+#	Z1 <- sqrt(R) * cos(V);
+#	Z2 <- sqrt(R) * sin(V);
+
+##	Z <- mvrnorm(n = sample, c(0, 0), matrix(c(1,0,0,1), 2, 2));
+
+	rho = (SIGMA[1,2] / sqrt(SIGMA[1,1] * SIGMA[2,2]));	#Correlation
+	sigma = c(sqrt(SIGMA[1,1]), sqrt(SIGMA[2,2]));	#Standard Deviations
+	X <- matrix(c((mu[1] + (sigma[1] * Z[,1])), (mu[2] + (rho * sigma[2] * Z[,1]) + (sqrt(1 - (rho^2)) * sigma[2] * Z[,2]))), nrow = sample, ncol = 2);
+
+	cat("The sample means, variances, and covariance are :","\nmean(X1) =", mean(X[,1]), "\nmean(X2) =", mean(X[,2]), "\nvariance(X1) =", var(X[,1]), "\nvariance(X2) =", var(X[,2]), "\ncorrelation(X1, X2) =", cor(X[,1], X[,2]), "\n");
+	cat("\nWhile, the actual means, variances, and covariance are :","\nmean(X1) =", mu[1], "\nmean(X2) =", mu[2], "\nvariance(X1) =", SIGMA[1,1], "\nvariance(X2) =", SIGMA[2,2], "\ncorrelation(X1, X2) =", rho, "\n");
+
+	f <- kde2d(X[,1], X[,2], n = sample);	# Two dimensional kernel density approximation
+	pdf(paste("1",100*rho,".pdf"));
+	contour(f, xlab = "X1", ylab = "X2", main = "")
+#	legend('topright', legend = paste("a =", rho), lty = 0, bty = 'n');
+
+##Question-2 ::
+	X_T <- mvrnorm(n = sample*100, mu, SIGMA);
+
+	pdf(paste("2_X1",100*rho,".pdf"));
+	plot(ecdf(sort(X[,1])), do.points = FALSE, main = "", col = "red", xlab = "", ylab = "")
+	par(new = TRUE)
+	plot(ecdf(sort(X_T[,1])), do.points = FALSE, main = "", col = "green", xlab = "", ylab = "", axes = FALSE)
+	legend('topleft', legend = c('Experimental (Empirical)', 'Theoretical (Actual)'), lty = 1, col = c("red", "green"), bty = 'n')
+#	title("Cumulative Distribution Function for X1");
+	title(xlab = "x", ylab = "F(x)");
+
+	pdf(paste("2_X2",100*rho,".pdf"));
+	plot(ecdf(sort(X[,2])), do.points = FALSE, main = "", col = "red", xlab = "", ylab = "")
+	par(new = TRUE)
+	plot(ecdf(sort(X_T[,2])), do.points = FALSE, main = "", col = "green", xlab = "", ylab = "", axes = FALSE)
+	legend('topleft', legend = c('Experimental (Empirical)', 'Theoretical (Actual)'), lty = 1, col = c("red", "green"), bty = 'n')
+#	title("Cumulative Distribution Function for X2");
+	title(xlab = "x", ylab = "F(x)");
+
+}
+
+#Question-3:
+gen_conditional <- function(mu, SIGMA, sample) {
+	U <- matrix(runif((2 * sample), 0, 1), nrow = sample, ncol = 2);
+#	u1 <- runif(sample, 0, 1);
+#	u2 <- runif(sample, 0, 1);
+	R <- -2 * log(U[,1]);
+	V <- 2 * pi * U[,2];
+#	R <- -2 * log(u1);
+#	V <- 2 * pi * u2;
+	Z <- matrix(c((sqrt(R) * cos(V)), (sqrt(R) * sin(V))), nrow = sample, ncol = 2);
+#	Z1 <- sqrt(R) * cos(V);
+#	Z2 <- sqrt(R) * sin(V);
+
+##	Z <- mvrnorm(n = sample, c(0, 0), matrix(c(1,0,0,1), 2, 2));
+
+	rho = (SIGMA[1,2] / sqrt(SIGMA[1,1] * SIGMA[2,2]));	#Correlation
+	sigma = c(sqrt(SIGMA[1,1]), sqrt(SIGMA[2,2]));	#Standard Deviations
+
+	X <- matrix(0, nrow = sample, ncol = 2);
+	X[,1] <- (mu[1] + (sigma[1] * Z[,1]));
+	X[,2] <- ((mu[2] + (rho * (sigma[2] / sigma[1]) * (X[,1] - mu[1]))) + (sqrt(1 - (rho^2)) * sigma[2] * Z[,2]));
+
+	cat("The sample means, variances, and covariance are :","\nmean(X1) =", mean(X[,1]), "\nmean(X2) =", mean(X[,2]), "\nvariance(X1) =", var(X[,1]), "\nvariance(X2) =", var(X[,2]), "\ncorrelation(X1, X2) =", cor(X[,1], X[,2]), "\n");
+	cat("\nWhile, the actual means, variances, and covariance are :","\nmean(X1) =", mu[1], "\nmean(X2) =", mu[2], "\nvariance(X1) =", SIGMA[1,1], "\nvariance(X2) =", SIGMA[2,2], "\ncorrelation(X1, X2) =", rho, "\n");
+
+}
+
+### EXECUTION :::
+set.seed(1);
+
+a = c(-0.25, 0, 0.25);
+mu <- c(5, 8);
+
+cat("Generation by Cholesky’s decomposition :-")
+for (i in 1:3) {
+	cat("\n\nCase -", i, ":: a =", a[i], "::\n");
+	SIGMA <- matrix(c(1, (2 * a[i]), (2 * a[i]), 4), nrow = 2, ncol = 2);
+	gen_cholesky(mu, SIGMA, 1000);
+}
+
+cat("\n\n###   ###   ###   ###   ###   ###   ###\n\n\n");
+
+cat("Generation from conditional distribution :-")
+for (i in 1:3) {
+	cat("\n\nCase -", i, ":: a =", a[i], "::\n");
+	SIGMA <- matrix(c(1, (2 * a[i]), (2 * a[i]), 4), nrow = 2, ncol = 2);
+	gen_conditional(mu, SIGMA, 1000);
+}
+\end{lstlisting}
+\newpage
+\noindent{\textbf{Results}:}\\
+Generation by Cholesky's decomposition :-
+\begin{center}
+	\begin{tabular}{||c || c c | c c | c c||}
+	\hline
+		a & \multicolumn{2}{c}{-0.25} & \multicolumn{2}{|c}{0} & \multicolumn{2}{|c||}{0.25}\\
+	\hline
+		Values & Sample & Actual & Sample & Actual & Sample & Actual\\
+	\hline
+		mean($X_1$) & 5.042667 & 5 & 5.010323 & 5 & 5.02068 & 5\\
+		mean($X_2$) & 7.984635 & 8 & 8.075212 & 8 & 7.937095 & 8\\
+		variance($X_1$) & 0.9423585 & 1 & 0.9465603 & 1 & 0.9758604 & 1\\
+		variance($X_2$) & 4.137109 & 4 & 3.835417 & 4 & 4.158121 & 4\\
+		correlation($X_1$, $X_2$) & -0.2542622 & -0.25 & -0.0217607 & 0 & 0.2661262 & 0.25\\
+	\hline
+	\end{tabular}
+\end{center}
+
+Generation from conditional distribution :-
+\begin{center}
+	\begin{tabular}{||c || c c | c c | c c||}
+	\hline
+		a & \multicolumn{2}{c}{-0.25} & \multicolumn{2}{|c}{0} & \multicolumn{2}{|c||}{0.25}\\
+	\hline
+		Values & Sample & Actual & Sample & Actual & Sample & Actual\\
+	\hline
+		mean($X_1$) & 5.020026 & 5 & 4.98154 & 5 & 5.031342 & 5\\
+		mean($X_2$) & 7.9408 & 8 & 7.97478 & 8 & 8.078837 & 8\\
+		variance($X_1$) & 0.9632567 & 1 & 0.9585365 & 1 & 1.031422 & 1\\
+		variance($X_2$) & 3.82001 & 4 & 4.102417 & 4 & 4.321624 & 4\\
+		correlation($X_1$, $X_2$) & -0.2120682 & -0.25 & -0.01003784 & 0 & 0.2554145 & 0.25\\
+	\hline
+	\end{tabular}
+\end{center}
+
+The sample values are close to the theoretical ones, in all cases of both the methods (i.e. generation by Cholesky's decomposition and generation from conditional distribution).
+
+\begin{figure}[H]
+	\centering
+	\subfloat[a = -0.25]{\includegraphics[width=0.475\textwidth]{"1 -25 ".pdf}}\hspace{5mm}
+	\subfloat[a = 0]{\includegraphics[width=0.475\textwidth]{"1 0 ".pdf}}\\
+	\subfloat[a = 0.25]{\includegraphics[width=0.475\textwidth]{"1 25 ".pdf}}
+		\caption{Empirical contour plots}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\subfloat[a = -0.25]{\includegraphics[width=0.475\textwidth]{"2_X1 -25 ".pdf}}\hspace{5mm}
+	\subfloat[a = 0]{\includegraphics[width=0.475\textwidth]{"2_X1 0 ".pdf}}\\
+	\subfloat[a = 0.25]{\includegraphics[width=0.475\textwidth]{"2_X1 25 ".pdf}}
+		\caption{Plots of marginal Cumulative Distribution Function of $X_1$}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\subfloat[a = -0.25]{\includegraphics[width=0.475\textwidth]{"2_X2 -25 ".pdf}}\hspace{5mm}
+	\subfloat[a = 0]{\includegraphics[width=0.475\textwidth]{"2_X2 0 ".pdf}}\\
+	\subfloat[a = 0.25]{\includegraphics[width=0.475\textwidth]{"2_X2 25 ".pdf}}
+		\caption{Plots of marginal Cumulative Distribution Function of $X_2$}
+\end{figure}
+\end{document}
+
+%#Made by Ayush Sharma#
+%#Signed as AShar#
